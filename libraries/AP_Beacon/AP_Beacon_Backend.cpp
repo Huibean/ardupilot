@@ -72,6 +72,43 @@ void AP_Beacon_Backend::set_beacon_position(uint8_t beacon_instance, const Vecto
     _frontend.beacon_state[beacon_instance].position = correct_for_orient_yaw(pos);
 }
 
+void AP_Beacon_Backend::handle_mavlink_msg(mavlink_message_t *msg)
+{
+    switch (msg->msgid) {
+    case MAVLINK_MSG_ID_BEACON_CONFIG:
+        {
+            mavlink_beacon_config_t packet;
+            mavlink_msg_beacon_config_decode(msg, &packet);
+
+            // ::printf("beacon_id: %d, x: %d, y: %d, z: %d \n", packet.beacon_id, packet.x, packet.y, packet.z);
+            Vector3f beacon_pos(packet.x / 1000.0f, packet.y / 1000.0f, -packet.z / 1000.0f);
+            set_beacon_position(packet.beacon_id, beacon_pos);
+            break;
+        }
+
+    case MAVLINK_MSG_ID_BEACON_DISTANCE:
+        {
+            mavlink_beacon_distance_t packet;
+            mavlink_msg_beacon_distance_decode(msg, &packet);
+
+            // ::printf("beacon_id: %d, distance: %d \n", packet.beacon_id, packet.distance);
+            set_beacon_distance(packet.beacon_id, packet.distance);
+            break;
+        }
+
+    case MAVLINK_MSG_ID_BEACON_VEHICLE_POSITION:
+        {
+            mavlink_beacon_vehicle_position_t packet;
+            mavlink_msg_beacon_vehicle_position_decode(msg, &packet);
+
+            // ::printf("x: %d, y: %d, z: %d, position_error: %d \n", packet.x, packet.y, packet.z, packet.position_error);
+            Vector3f veh_pos(Vector3f(packet.x / 1000.0f, packet.y / 1000.0f, -packet.z / 1000.0f));
+            set_vehicle_position(veh_pos, packet.position_error);
+            break;
+        }
+    }
+}
+
 // rotate vector (meters) to correct for beacon system yaw orientation
 Vector3f AP_Beacon_Backend::correct_for_orient_yaw(const Vector3f &vector)
 {

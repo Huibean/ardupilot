@@ -17,6 +17,7 @@
 #include "AP_Beacon_Backend.h"
 #include "AP_Beacon_Pozyx.h"
 #include "AP_Beacon_Marvelmind.h"
+#include "AP_Beacon_MAVLink.h"
 #include "AP_Beacon_SITL.h"
 
 extern const AP_HAL::HAL &hal;
@@ -27,7 +28,7 @@ const AP_Param::GroupInfo AP_Beacon::var_info[] = {
     // @Param: _TYPE
     // @DisplayName: Beacon based position estimation device type
     // @Description: What type of beacon based position estimation device is connected
-    // @Values: 0:None,1:Pozyx,2:Marvelmind
+    // @Values: 0:None,1:Pozyx,2:Marvelmind,3:Mavlink
     // @User: Advanced
     AP_GROUPINFO("_TYPE",    0, AP_Beacon, _type, 0),
 
@@ -85,7 +86,9 @@ void AP_Beacon::init(void)
     }
 
     // create backend
-    if (_type == AP_BeaconType_Pozyx) {
+    if (_type == AP_BeaconType_Mavlink) {
+        _driver = new AP_Beacon_Mavlink(*this);
+    } else if (_type == AP_BeaconType_Pozyx) {
         _driver = new AP_Beacon_Pozyx(*this, serial_manager);
     } else if (_type == AP_BeaconType_Marvelmind) {
         _driver = new AP_Beacon_Marvelmind(*this, serial_manager);
@@ -229,4 +232,31 @@ uint32_t AP_Beacon::beacon_last_update_ms(uint8_t beacon_instance) const
 bool AP_Beacon::device_ready(void) const
 {
     return ((_driver != nullptr) && (_type != AP_BeaconType_None));
+}
+
+void AP_Beacon::handle_mavlink_msg(mavlink_message_t *msg)
+{
+    if ((!device_ready()) && (_type != AP_BeaconType_Mavlink)) {
+        return;
+    }
+    _driver->handle_mavlink_msg(msg);
+}
+
+void AP_Beacon::send_beacon_status(mavlink_channel_t chan)
+{
+    Vector3f pos;
+    float accuracy = 0.0f;
+    get_vehicle_position_ned(pos, accuracy);
+    mavlink_msg_beacon_status_send(
+            chan,
+            AP_HAL::millis(),
+            healthy(),
+            count(),
+            beacon_distance(0),
+            beacon_distance(1),
+            beacon_distance(2),
+            beacon_distance(3),
+            pos.x,
+            pos.y,
+            pos.z);
 }
