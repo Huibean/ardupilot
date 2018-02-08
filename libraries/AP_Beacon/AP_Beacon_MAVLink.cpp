@@ -14,8 +14,7 @@
  */
 
 #include <AP_HAL/AP_HAL.h>
-#include <GCS_MAVLink/GCS_MAVLink.h>
-#include "AP_Beacon_Mavlink.h"
+#include "AP_Beacon_MAVLink.h"
 #include <ctype.h>
 #include <stdio.h>
 
