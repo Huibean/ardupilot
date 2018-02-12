@@ -599,6 +599,12 @@ bool GCS_MAVLINK_Copter::try_send_message(enum ap_message id)
     case MSG_BATTERY_STATUS:
         send_battery_status(copter.battery);
         break;
+
+    case MSG_BEACON_STATUS:
+        CHECK_PAYLOAD_SIZE(BEACON_STATUS);
+        copter.g2.beacon.send_beacon_status(chan);
+        break;
+
     }
 
     return true;
@@ -792,6 +798,7 @@ GCS_MAVLINK_Copter::data_stream_send(void)
         send_message(MSG_EKF_STATUS_REPORT);
         send_message(MSG_VIBRATION);
         send_message(MSG_RPM);
+        send_message(MSG_BEACON_STATUS);
     }
 
     if (copter.gcs_out_of_time) return;
@@ -2076,6 +2083,18 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 #if VISUAL_ODOMETRY_ENABLED == ENABLED
         copter.g2.visual_odom.handle_msg(msg);
 #endif
+        break;
+
+    case MAVLINK_MSG_ID_BEACON_CONFIG:
+        copter.g2.beacon.handle_mavlink_msg(msg);
+        break;
+
+    case MAVLINK_MSG_ID_BEACON_DISTANCE:
+        copter.g2.beacon.handle_mavlink_msg(msg);
+        break;
+
+    case MAVLINK_MSG_ID_BEACON_VEHICLE_POSITION:
+        copter.g2.beacon.handle_mavlink_msg(msg);
         break;
 
     default:

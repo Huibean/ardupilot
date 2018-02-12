@@ -14,6 +14,7 @@
  */
 #pragma once
 
+#include <GCS_MAVLink/GCS_MAVLink.h>
 #include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
@@ -37,6 +38,7 @@ public:
         AP_BeaconType_None   = 0,
         AP_BeaconType_Pozyx  = 1,
         AP_BeaconType_Marvelmind = 2,
+        AP_BeaconType_Mavlink = 3,
         AP_BeaconType_SITL   = 10
     };
 
@@ -91,6 +93,9 @@ public:
     uint32_t beacon_last_update_ms(uint8_t beacon_instance) const;
 
     static const struct AP_Param::GroupInfo var_info[];
+
+    void handle_mavlink_msg(mavlink_message_t *msg);
+    void send_beacon_status(mavlink_channel_t chan);
 
 private:
 

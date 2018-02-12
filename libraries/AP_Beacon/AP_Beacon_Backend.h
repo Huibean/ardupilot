@@ -45,6 +45,9 @@ public:
     float get_beacon_origin_lon(void) const { return _frontend.origin_lon; }
     float get_beacon_origin_alt(void) const { return _frontend.origin_alt; }
 
+    // handle mavlink msg
+    void handle_mavlink_msg(mavlink_message_t *msg);
+
 protected:
 
     // references
