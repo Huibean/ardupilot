@@ -131,6 +131,8 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(fourhundred_hz_logging,400,    50),
 #endif
     SCHED_TASK_CLASS(AP_Notify,            &copter.notify,              update,          50,  90),
+    SCHED_TASK_CLASS(AP_Swarm,            &copter.swarm,              update,          50,  90),
+    SCHED_TASK_CLASS(AP_Light,            &copter.light,              update,          50,  90),
     SCHED_TASK(one_hz_loop,            1,    100),
     SCHED_TASK(ekf_check,             10,     75),
     SCHED_TASK(gpsglitch_check,       10,     50),

@@ -72,6 +72,8 @@
 #include <AP_Scheduler/AP_Scheduler.h>       // main loop scheduler
 #include <AP_RCMapper/AP_RCMapper.h>        // RC input mapping library
 #include <AP_Notify/AP_Notify.h>          // Notify library
+#include <AP_Swarm/AP_Swarm.h>          // Light library
+#include <AP_Light/AP_Light.h>          // Light library
 #include <AP_BattMonitor/AP_BattMonitor.h>     // Battery monitor library
 #include <AP_BoardConfig/AP_BoardConfig.h>     // board configuration library
 #include <AP_BoardConfig/AP_BoardConfig_CAN.h>
@@ -219,6 +221,12 @@ private:
 
     // AP_Notify instance
     AP_Notify notify;
+
+    // AP_Swarm instance
+    AP_Swarm light;
+
+    // AP_Light instance
+    AP_Light light;
 
     // used to detect MAVLink acks from GCS to stop compassmot
     uint8_t command_ack_counter;

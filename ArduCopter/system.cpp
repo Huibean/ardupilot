@@ -81,6 +81,12 @@ void Copter::init_ardupilot()
     notify.init();
     notify_flight_mode();
 
+    // initialise swarm system
+    swarm.init();
+    
+    // initialise light system
+    light.init();
+
     // initialise battery monitor
     battery.init();
 
