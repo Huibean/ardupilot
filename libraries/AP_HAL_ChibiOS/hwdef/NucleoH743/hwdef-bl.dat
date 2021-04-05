@@ -49,4 +49,4 @@ define HAL_STORAGE_SIZE 16384
 
 # Add CS pins to ensure they are high in bootloader
 PA4 MPU_CS CS
-PC7 BARO_CS CS
+PF10 MS5611_CS CS
