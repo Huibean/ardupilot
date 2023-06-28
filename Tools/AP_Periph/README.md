@@ -124,7 +124,7 @@ Build Commands:
 ```
 Autotest Command:
 ```
-Tools/autotest/autotest.py -v Copter build.SITLPeriphGPS test.CAN
+Tools/autotest/autotest.py build.Copter build.SITLPeriphGPS test.CAN
 ```
 
 
