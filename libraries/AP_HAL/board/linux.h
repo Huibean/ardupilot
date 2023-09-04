@@ -325,6 +325,9 @@
     #define HAL_BUZZER_PIN                12 // You can choose between 27,22,4,12
     #define OBAL_ALLOW_ADC                1
 
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MP157
+
+    #define HAL_BARO_PROBE_LIST PROBE_BARO_I2C(BMP388, 1, 0x77)
 #else
     #error "no Linux board subtype set"
 #endif

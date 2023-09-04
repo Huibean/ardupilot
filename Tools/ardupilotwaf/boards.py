@@ -1391,6 +1391,17 @@ class obal(linux):
             CONFIG_HAL_BOARD_SUBTYPE = 'HAL_BOARD_SUBTYPE_LINUX_OBAL_V1',
         )
 
+class mp157(linux):
+    toolchain = 'arm-ostl-linux-gnueabi-gcc'
+
+    def configure_env(self, cfg, env):
+        super(mp157, self).configure_env(cfg, env)
+
+        env.DEFINES.update(
+            CONFIG_HAL_BOARD_SUBTYPE = 'HAL_BOARD_SUBTYPE_LINUX_MP157',
+        )
+
+
 class SITL_static(sitl):
     def configure_env(self, cfg, env):
         super(SITL_static, self).configure_env(cfg, env)
