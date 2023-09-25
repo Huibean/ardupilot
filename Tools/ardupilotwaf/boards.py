@@ -1394,6 +1394,9 @@ class obal(linux):
 class mp157(linux):
     toolchain = 'arm-ostl-linux-gnueabi-gcc'
 
+    def __init__(self):
+        self.with_can = True
+
     def configure_env(self, cfg, env):
         super(mp157, self).configure_env(cfg, env)
 

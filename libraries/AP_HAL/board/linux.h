@@ -326,8 +326,14 @@
     #define OBAL_ALLOW_ADC                1
 
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MP157
-
-    #define HAL_BARO_PROBE_LIST PROBE_BARO_I2C(BMP388, 1, 0x77)
+    #define HAL_INS_PROBE_LIST PROBE_IMU_SPI(Invensense, "icm20602", ROTATION_NONE)
+    #define HAL_BARO_PROBE_LIST PROBE_BARO_I2C(BMP388, 0, 0x77)
+    #define HAL_MAG_PROBE1 PROBE_MAG_I2C(BMM150, 0, 0x13, ROTATION_NONE)
+    #define HAL_NUM_CAN_IFACES 1
+    #define HAL_GPIO_A_LED_PIN        13
+    #define HAL_GPIO_B_LED_PIN        14
+    #define HAL_GPIO_LED_ON           0
+    #define HAL_GPIO_LED_OFF          1
 #else
     #error "no Linux board subtype set"
 #endif
