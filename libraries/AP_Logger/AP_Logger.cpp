@@ -191,6 +191,7 @@ AP_Logger::AP_Logger(const AP_Int32 &log_bitmask)
 
 void AP_Logger::Init(const struct LogStructure *structures, uint8_t num_types)
 {
+    printf("AP_Logger::Init \n");
     // convert from 8 bit to 16 bit LOG_FILE_BUFSIZE
     _params.file_bufsize.convert_parameter_width(AP_PARAM_INT8);
 

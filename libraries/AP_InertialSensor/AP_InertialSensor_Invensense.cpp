@@ -56,7 +56,7 @@ extern const AP_HAL::HAL& hal;
 #endif
 
 // code to debug unexpected register changes
-#define INVENSENSE_DEBUG_REG_CHANGE 0
+#define INVENSENSE_DEBUG_REG_CHANGE 1
 
 #if INVENSENSE_DEBUG_REG_CHANGE
 #include <GCS_MAVLink/GCS.h>
@@ -100,6 +100,7 @@ AP_InertialSensor_Backend *AP_InertialSensor_Invensense::probe(AP_InertialSensor
                                                                AP_HAL::OwnPtr<AP_HAL::I2CDevice> dev,
                                                                enum Rotation rotation)
 {
+    DEV_PRINTF("AP_InertialSensor_Invensense::probe\n");
     if (!dev) {
         return nullptr;
     }

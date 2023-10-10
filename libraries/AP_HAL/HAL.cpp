@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include <stdio.h>
 #include "HAL.h"
 
 namespace AP_HAL {

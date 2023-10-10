@@ -220,7 +220,8 @@ static RCOutput_Sysfs rcoutDriver(0, 0, 8);
 #elif  CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1
 static RCOutput_PCA9685 rcoutDriver(i2c_mgr_instance.get_device(1, PCA9685_PRIMARY_ADDRESS), 0, 0, RPI_GPIO_<17>());
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MP157
-static RCOutput_Sysfs rcoutDriver(0, 0, 4);
+// static RCOutput_Sysfs rcoutDriver(0, 0, 4);
+static Empty::RCOutput rcoutDriver;
 #else
 static Empty::RCOutput rcoutDriver;
 #endif
@@ -342,6 +343,8 @@ void HAL_Linux::run(int argc, char* const argv[], Callbacks* callbacks) const
     /*
       parse command line options
      */
+    fprintf(stdout, "HELLO WORLD\n");
+
     while ((opt = gopt.getoption()) != -1) {
         switch (opt) {
         case 'A':
@@ -432,10 +435,14 @@ void HAL_Linux::run(int argc, char* const argv[], Callbacks* callbacks) const
 
 #if AP_MODULE_SUPPORTED
     AP_Module::call_hook_setup_start();
+    fprintf(stdout, "TP1\n");
 #endif
+    fprintf(stdout, "callbacks->setup()\n");
     callbacks->setup();
+    fprintf(stdout, "TP2\n");
 #if AP_MODULE_SUPPORTED
     AP_Module::call_hook_setup_complete();
+    fprintf(stdout, "TP3\n");
 #endif
 
     while (!_should_exit) {

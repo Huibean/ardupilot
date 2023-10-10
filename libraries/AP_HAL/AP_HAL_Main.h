@@ -17,6 +17,7 @@
 #pragma once
 
 #include "HAL.h"
+#include <stdio.h>
 
 #ifndef AP_MAIN
 #define AP_MAIN main
@@ -27,6 +28,7 @@
     extern "C" {                               \
     int AP_MAIN(int argc, char* const argv[]); \
     int AP_MAIN(int argc, char* const argv[]) { \
+        fprintf(stdout, "AP_HAL_MAIN\n"); \
         hal.run(argc, argv, &callbacks); \
         return 0; \
     } \
@@ -35,6 +37,7 @@
 #define AP_HAL_MAIN_CALLBACKS(CALLBACKS) extern "C" { \
     int AP_MAIN(int argc, char* const argv[]); \
     int AP_MAIN(int argc, char* const argv[]) { \
+        fprintf(stdout, "AP_HAL_MAIN_CALLBACKS\n"); \
         hal.run(argc, argv, CALLBACKS); \
         return 0; \
     } \
