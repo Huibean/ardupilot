@@ -127,6 +127,10 @@ function logger:write(name, labels, format, ...) end
 ---@param filename string -- file name
 function logger:log_file_content(filename) end
 
+-- Returns a true if logging has started
+---@return boolean -- true if logging has started
+function logger:logging_started() end
+
 -- i2c bus interaction
 i2c = {}
 
