@@ -82,6 +82,15 @@ public:
         Critical
     };
 
+#if AP_BATTERY_TIBQ76952_ENABLED
+    // Power state machine states
+    enum class PowerState : uint8_t {
+        IDLE = 0,
+        CHARGING,
+        DISCHARGING
+    };
+#endif
+
     // Battery monitor driver types
     using Type = AP_BattMonitor_Params::Type;
 
@@ -106,6 +115,7 @@ public:
         cells       cell_voltages;             // battery cell voltages in millivolts, 10 cells matches the MAVLink spec
         float       voltage;                   // voltage in volts
         float       current_amps;              // current in amperes
+        float       max_current_amps;          // maximum current in amperes
         float       consumed_mah;              // total current draw in milliamp hours since start-up
         float       consumed_wh;               // total energy consumed in Wh since start-up
         uint32_t    last_time_micros;          // time when voltage and current was last read in microseconds
@@ -128,6 +138,9 @@ public:
         bool        has_time_remaining;        // time_remaining is only valid if this is true
         uint8_t     state_of_health_pct;       // state of health (SOH) in percent
         bool        has_state_of_health_pct;   // state_of_health_pct is only valid if this is true
+#if AP_BATTERY_TIBQ76952_ENABLED
+        PowerState  power_state;               // Power state machine state
+#endif
         uint8_t     instance;                  // instance number of this backend
         Type        type;                      // allocated instance type
         const struct AP_Param::GroupInfo *var_info;
@@ -165,6 +178,9 @@ public:
 
     /// current_amps - returns the instantaneous current draw in amperes
     bool current_amps(float &current, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
+
+    bool has_max_current(uint8_t instance) const;
+    bool get_max_current(float &max_current, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
 
     /// consumed_mah - returns total current drawn since start-up in milliampere.hours
     bool consumed_mah(float &mah, const uint8_t instance = AP_BATT_PRIMARY_INSTANCE) const WARN_IF_UNUSED;
@@ -208,14 +224,6 @@ public:
     bool overpower_detected() const;
     bool overpower_detected(uint8_t instance) const;
 
-#if AP_BATTERY_WATT_MAX_ENABLED
-    /// get_watt_max - returns maximum power in watts
-    float get_watt_max() const { return get_watt_max(AP_BATT_PRIMARY_INSTANCE); }
-    float get_watt_max(uint8_t instance) const {
-        return _params[instance]._watt_max;
-    }
-#endif // AP_BATTERY_WATT_MAX_ENABLED
-
     // cell voltages in millivolts
     bool has_cell_voltages() const { return has_cell_voltages(AP_BATT_PRIMARY_INSTANCE); }
     bool has_cell_voltages(const uint8_t instance) const;
@@ -224,7 +232,7 @@ public:
 
     // get once cell voltage (for scripting)
     bool get_cell_voltage(uint8_t instance, uint8_t cell, float &voltage) const;
-    
+
     // temperature
     bool get_temperature(float &temperature) const { return get_temperature(temperature, AP_BATT_PRIMARY_INSTANCE); }
     bool get_temperature(float &temperature, const uint8_t instance) const;
@@ -251,6 +259,11 @@ public:
 
     // sends powering off mavlink broadcasts and sets notify flag
     void checkPoweringOff(void);
+    
+#if AP_BATTERY_TIBQ76952_ENABLED
+    // Get power state (TIBQ76952 only)
+    PowerState get_power_state(uint8_t instance) const { return state[instance].power_state; }
+#endif
 
     // reset battery remaining percentage
     bool reset_remaining_mask(uint16_t battery_mask, float percentage);
@@ -264,6 +277,13 @@ public:
 
     // return true if state of health (as a percentage) can be provided and fills in soh_pct argument
     bool get_state_of_health_pct(uint8_t instance, uint8_t &soh_pct) const;
+
+#if AP_BATTERY_TIBQ76952_ENABLED
+    // control discharge FET on battery monitor (if supported)
+    void set_discharge(uint8_t instance, bool enable);
+
+
+#endif // AP_BATTERY_TIBQ76952_ENABLED
 
     static const struct AP_Param::GroupInfo var_info[];
 

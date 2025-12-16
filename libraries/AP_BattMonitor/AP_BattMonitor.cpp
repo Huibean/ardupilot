@@ -28,6 +28,7 @@
 #include "AP_BattMonitor_Synthetic_Current.h"
 #include "AP_BattMonitor_AD7091R5.h"
 #include "AP_BattMonitor_Scripting.h"
+#include "AP_BattMonitor_TIBQ76952.h"
 
 #include <AP_HAL/AP_HAL.h>
 
@@ -707,6 +708,11 @@ AP_BattMonitor::init()
                 drivers[instance] = NEW_NOTHROW AP_BattMonitor_INA3221(*this, state[instance], _params[instance]);
                 break;
 #endif  // AP_BATTERY_INA3221_ENABLED
+#if AP_BATTERY_TIBQ76952_ENABLED
+            case Type::TIBQ76952_I2C:
+                drivers[instance] = NEW_NOTHROW AP_BattMonitor_TIBQ76952(*this, state[instance], _params[instance]);
+                break;
+#endif // AP_BATTERY_TIBQ76952_ENABLED
             case Type::NONE:
             default:
                 break;
@@ -1059,6 +1065,24 @@ bool AP_BattMonitor::get_cycle_count(uint8_t instance, uint16_t &cycles) const
     return drivers[instance]->get_cycle_count(cycles);
 }
 
+// return true if maximum current can be provided
+bool AP_BattMonitor::has_max_current(uint8_t instance) const
+{
+    if (instance >= _num_instances || drivers[instance] == nullptr) {
+        return false;
+    }
+    return drivers[instance]->has_max_current();
+}
+
+// return true if maximum current can be provided and fills in max_current argument
+bool AP_BattMonitor::get_max_current(float &max_current, const uint8_t instance) const
+{
+    if (instance >= _num_instances || drivers[instance] == nullptr) {
+        return false;
+    }
+    return drivers[instance]->get_max_current(max_current);
+}
+
 bool AP_BattMonitor::arming_checks(size_t buflen, char *buffer) const
 {
     char temp_buffer[MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN+1] {};
@@ -1197,6 +1221,18 @@ bool AP_BattMonitor::get_state_of_health_pct(uint8_t instance, uint8_t &soh_pct)
     }
     return drivers[instance]->get_state_of_health_pct(soh_pct);
 }
+
+
+#if AP_BATTERY_TIBQ76952_ENABLED
+// control discharge FET on battery monitor (if supported)
+void AP_BattMonitor::set_discharge(uint8_t instance, bool enable)
+{
+    if (instance >= _num_instances || drivers[instance] == nullptr) {
+        return;
+    }
+    drivers[instance]->set_discharge(enable);
+}
+#endif // AP_BATTERY_TIBQ76952_ENABLED
 
 // Enable/Disable (Turn on/off) MPPT power to all backends who are MPPTs
 void AP_BattMonitor::MPPT_set_powered_state_to_all(const bool power_on)

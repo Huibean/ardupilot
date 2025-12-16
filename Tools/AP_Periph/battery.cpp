@@ -103,6 +103,11 @@ void AP_Periph_FW::can_battery_send_cells(uint8_t instance)
         delete [] buffer;
         return;
     }
+    pkt->timestamp.usec = AP_HAL::micros(); 
+    // if a battery serial number is assigned, use that as the ID. Else, use the index.
+    const int32_t serial_number = battery_lib.get_serial_number(instance);
+    pkt->battery_id = (serial_number >= 0) ? serial_number : instance+1;
+
     const auto &cell_voltages = battery_lib.get_cell_voltages(instance);
 			
     for (uint8_t i = 0; i < ARRAY_SIZE(cell_voltages.cells); i++) {
@@ -113,7 +118,14 @@ void AP_Periph_FW::can_battery_send_cells(uint8_t instance)
         pkt->voltage_cell.len = i+1;
     }
 			
-    pkt->max_current = nanf("");
+    if (battery_lib.has_max_current(instance)) {
+        float max_current;
+        if (battery_lib.get_max_current(max_current, instance)) {
+            pkt->max_current = max_current;
+        }
+    } else {
+        pkt->max_current = nanf("");
+    }
     pkt->nominal_voltage = nanf("");
 
     // encode and send message:

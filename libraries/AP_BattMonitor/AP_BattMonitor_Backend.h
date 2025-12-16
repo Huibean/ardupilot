@@ -47,6 +47,12 @@ public:
     /// returns true if battery monitor instance provides current info
     virtual bool has_current() const = 0;
 
+    // return true if battery monitor provides maximum current info 
+    virtual bool has_max_current() const { return false; }
+
+    // return true if maximum current can be provided and fills in max_current argument
+    virtual bool get_max_current(float &max_current) const { return false; }
+
     // returns true if battery monitor provides individual cell voltages
     virtual bool has_cell_voltages() const { return false; }
 
@@ -84,6 +90,9 @@ public:
 
     // return mavlink fault bitmask (see MAV_BATTERY_FAULT enum)
     virtual uint32_t get_mavlink_fault_bitmask() const { return 0; }
+    
+    // control discharge FET (for BMS systems)
+    virtual void set_discharge(bool enable) {}
 
     // logging functions 
     void Log_Write_BAT(const uint8_t instance, const uint64_t time_us) const;
