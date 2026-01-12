@@ -29,7 +29,8 @@
 #include <AP_BoardConfig/AP_BoardConfig.h>
 
 #define WAI_REG 0x0
-#define DEVICE_ID 0x10
+#define IST8310_WHO_AM_I 0x10
+#define IST8310J_WHO_AM_I 0xA3
 
 #define OUTPUT_X_L_REG 0x3
 #define OUTPUT_X_H_REG 0x4
@@ -62,6 +63,7 @@
 #define SAMPLING_PERIOD_USEC (10 * AP_USEC_PER_MSEC)
 
 /*
+ * IST8310 Specifications:
  * FSR:
  *   x, y: +- 1600 µT
  *   z:    +- 2500 µT
@@ -74,6 +76,21 @@ static const int16_t IST8310_MAX_VAL_XY = (1600 / IST8310_RESOLUTION) + 1;
 static const int16_t IST8310_MIN_VAL_XY = -IST8310_MAX_VAL_XY;
 static const int16_t IST8310_MAX_VAL_Z  = (2500 / IST8310_RESOLUTION) + 1;
 static const int16_t IST8310_MIN_VAL_Z  = -IST8310_MAX_VAL_Z;
+
+/*
+ * IST8310J Specifications:
+ * FSR:
+ *   x:      +- 800  µT
+ *   y,z:    +- 1200 µT
+ *
+ * Resolution according to datasheet is 0.075µT/LSB
+ */
+#define IST8310J_RESOLUTION 0.075
+
+static const int16_t IST8310J_MAX_VAL_X = (800 / IST8310J_RESOLUTION) + 1;
+static const int16_t IST8310J_MIN_VAL_X = -IST8310J_MAX_VAL_X;
+static const int16_t IST8310J_MAX_VAL_YZ = (1200 / IST8310J_RESOLUTION) + 1;
+static const int16_t IST8310J_MIN_VAL_YZ = -IST8310J_MAX_VAL_YZ;
 
 
 extern const AP_HAL::HAL &hal;
@@ -129,10 +146,8 @@ bool AP_Compass_IST8310::init()
     _dev->write_register(CNTL2_REG, CNTL2_VAL_SRST);
     hal.scheduler->delay(10);
 
-    uint8_t whoami;
-    if (!_dev->read_registers(WAI_REG, &whoami, 1) ||
-        whoami != DEVICE_ID) {
-        // not an IST8310
+    if (!_check_whoami()) {
+        // not an IST8310 or IST8310J
         goto fail;
     }
 
@@ -195,6 +210,30 @@ fail:
     return false;
 }
 
+/*
+  check whoami for sensor type
+ */
+bool AP_Compass_IST8310::_check_whoami(void)
+{
+    uint8_t whoami;
+    if (!_dev->read_registers(WAI_REG, &whoami, 1)) {
+        return false;
+    }
+
+    switch (whoami) {
+    case IST8310_WHO_AM_I:
+        _device_type = IST8310_IST8310;
+        break;
+    case IST8310J_WHO_AM_I:
+        _device_type = IST8310_IST8310J;
+        break;
+    default:
+        return false;
+    }
+
+    return true;
+}
+
 void AP_Compass_IST8310::start_conversion()
 {
     if (!_dev->write_register(CNTL1_REG, CNTL1_VAL_SINGLE_MEASUREMENT_MODE)) {
@@ -230,21 +269,34 @@ void AP_Compass_IST8310::timer()
     auto y = static_cast<int16_t>(le16toh(buffer.ry));
     auto z = static_cast<int16_t>(le16toh(buffer.rz));
 
+    float resolution_scale;
     /*
      * Check if value makes sense according to the FSR and Resolution of
      * this sensor, discarding outliers
      */
-    if (x > IST8310_MAX_VAL_XY || x < IST8310_MIN_VAL_XY ||
-        y > IST8310_MAX_VAL_XY || y < IST8310_MIN_VAL_XY ||
-        z > IST8310_MAX_VAL_Z  || z < IST8310_MIN_VAL_Z) {
+    if (_device_type == IST8310_IST8310) {
+        if (x > IST8310_MAX_VAL_XY || x < IST8310_MIN_VAL_XY ||
+            y > IST8310_MAX_VAL_XY || y < IST8310_MIN_VAL_XY ||
+            z > IST8310_MAX_VAL_Z  || z < IST8310_MIN_VAL_Z) {
+            return;
+        }
+        resolution_scale = 3.0f;  // 0.3 µT/LSB -> milligauss
+    } else if (_device_type == IST8310_IST8310J) {
+        if (x > IST8310J_MAX_VAL_X || x < IST8310J_MIN_VAL_X ||
+            y > IST8310J_MAX_VAL_YZ || y < IST8310J_MIN_VAL_YZ ||
+            z > IST8310J_MAX_VAL_YZ || z < IST8310J_MIN_VAL_YZ) {
+            return;
+        }
+        resolution_scale = 0.75f;  // 0.075 µT/LSB -> milligauss
+    } else {
+        // unknown device type
         return;
     }
 
     // flip Z to conform to right-hand rule convention
     z = -z;
 
-    /* Resolution: 0.3 µT/LSB - already convert to milligauss */
-    Vector3f field = Vector3f{x * 3.0f, y * 3.0f, z * 3.0f};
+    Vector3f field = Vector3f{x * resolution_scale, y * resolution_scale, z * resolution_scale};
 
     accumulate_sample(field);
 }

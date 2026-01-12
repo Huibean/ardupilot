@@ -46,17 +46,26 @@ public:
 
     static constexpr const char *name = "IST8310";
 
+    enum IST8310_Type {
+        IST8310_IST8310=0,
+        IST8310_IST8310J,
+    };
+
 private:
     AP_Compass_IST8310(AP_HAL::OwnPtr<AP_HAL::Device> dev,
                        bool force_external,
                        enum Rotation rotation);
 
+    bool _check_whoami();
     void timer();
     bool init();
     void start_conversion();
 
     AP_HAL::OwnPtr<AP_HAL::Device> _dev;
     AP_HAL::Device::PeriodicHandle _periodic_handle;
+
+    // which sensor type this is
+    enum IST8310_Type _device_type;
 
     enum Rotation _rotation;
     bool _ignore_next_sample;
