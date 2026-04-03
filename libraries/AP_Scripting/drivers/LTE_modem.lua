@@ -904,9 +904,11 @@ local function step_CREG()
             }
             local status = status_map[tonumber(reg)] or (tostring(reg) .. ": unknown status")
             gcs:send_text(MAV_SEVERITY.INFO, "CREG: " .. status)
-            if reg == "0" then
-                AT_send("AT+CFUN=1\r\n")
-                AT_send("AT+COPS?\r\n")
+            if reg == "0" or reg == "3" then
+                local reason = reg == "3" and "registration denied" or "not searching"
+                gcs:send_text(MAV_SEVERITY.WARNING, string.format("LTE_modem: %s, re-registering", reason))
+                AT_send("AT+COPS=2\r\n")
+                AT_send("AT+COPS=0\r\n")
             end
         end
     end
